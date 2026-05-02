@@ -32,6 +32,10 @@ body {
   overflow-x: hidden;
 }
 
+body.landing-locked {
+  overflow: hidden;
+}
+
 /* Custom cursor */
 .cursor {
   width: 12px;
@@ -235,4 +239,83 @@ body::before {
 
 .orbit-dot {
   animation: orbit 8s linear infinite;
+}
+
+.enter-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border: 0;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255, 77, 28, 0.18), transparent 28%),
+    radial-gradient(circle at 80% 20%, rgba(0, 245, 255, 0.08), transparent 22%),
+    linear-gradient(180deg, rgba(10, 10, 15, 0.94), rgba(10, 10, 15, 0.98));
+  color: var(--paper);
+  text-align: center;
+  cursor: pointer;
+}
+
+.enter-screen__ambient {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, transparent 0%, rgba(255, 77, 28, 0.06) 45%, transparent 100%);
+  opacity: 0.9;
+  animation: enterSweep 5s linear infinite;
+}
+
+.enter-screen__ring {
+  position: absolute;
+  width: min(64vw, 34rem);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 77, 28, 0.3);
+  box-shadow: 0 0 80px rgba(255, 77, 28, 0.08), inset 0 0 60px rgba(255, 77, 28, 0.05);
+  animation: enterPulse 3.2s ease-in-out infinite;
+}
+
+.enter-screen__content {
+  position: relative;
+  z-index: 1;
+  max-width: 32rem;
+}
+
+.enter-screen__eyebrow {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);  
+}
+
+.enter-screen__title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(3.2rem, 9vw, 6.5rem);
+  line-height: 0.92;
+  margin-bottom: 1rem;
+}
+
+.enter-screen__copy {
+  max-width: 22rem;
+  margin: 0 auto;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: rgba(245, 243, 238, 0.72);
+}
+
+@keyframes enterPulse {
+  0%, 100% { transform: scale(0.96); opacity: 0.8; }
+  50% { transform: scale(1.02); opacity: 1; }
+}
+
+@keyframes enterSweep {
+  0% { transform: translateX(-8%); opacity: 0.45; }
+  50% { transform: translateX(8%); opacity: 0.9; }
+  100% { transform: translateX(-8%); opacity: 0.45; }
 }
