@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Cursor from '../components/Cursor'
 import Nav from '../components/Nav'
 import Hero from '../components/Hero'
@@ -12,6 +12,7 @@ import Footer from '../components/Footer'
 
 export default function Home() {
   const [entered, setEntered] = useState(false)
+  const navRef = useRef(null)
 
   useEffect(() => {
     document.body.classList.toggle('landing-locked', !entered)
@@ -21,6 +22,11 @@ export default function Home() {
     }
   }, [entered])
 
+  const handleEnter = async () => {
+    await navRef.current?.armAndPlay?.()
+    setEntered(true)
+  }
+
   return (
     <>
       <Cursor />
@@ -28,7 +34,7 @@ export default function Home() {
         <button
           type="button"
           className="enter-screen"
-          onClick={() => setEntered(true)}
+          onClick={handleEnter}
           aria-label="Enter portfolio"
         >
           <div className="enter-screen__ambient" aria-hidden="true" />
@@ -44,7 +50,7 @@ export default function Home() {
           </div>
         </button>
       )}
-      <Nav armed={entered} />
+      <Nav ref={navRef} armed={entered} />
       <main>
         <Hero />
         <About />

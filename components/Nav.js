@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 const navLinks = [
   { label: 'About', href: '#about' },
@@ -9,11 +9,12 @@ const navLinks = [
   { label: 'Contact', href: '#contact' },
 ]
 
-export default function Nav({ armed = false }) {
+const Nav = forwardRef(function Nav({ armed = false }, ref) {
   const [scrolled, setScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const [musicOn, setMusicOn] = useState(true)
+  const [musicBlocked, setMusicBlocked] = useState(false)
   const audioRef = useRef(null)
 
   useEffect(() => {
@@ -40,77 +41,94 @@ export default function Nav({ armed = false }) {
 
     audio.volume = 0.5
     audio.loop = true
-
-    const savedPreference = window.localStorage.getItem('portfolio-music') !== 'off'
-    setMusicOn(savedPreference)
+    setMusicOn(window.localStorage.getItem('portfolio-music') !== 'off')
   }, [])
+
+  const playAudio = async () => {
+    const audio = audioRef.current
+    if (!audio) return false
+
+    try {
+      await audio.play()
+      setMusicBlocked(false)
+      return true
+    } catch {
+      setMusicBlocked(true)
+      return false
+    }
+  }
+
+  useImperativeHandle(ref, () => ({
+    async armAndPlay() {
+      if (!musicOn) return false
+      return playAudio()
+    },
+  }), [musicOn])
 
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
-    audio.volume = 0.5
-    audio.loop = true
-
-    const savedPreference = localStorage.getItem('portfolio-music') !== 'off'
-    setMusicOn(savedPreference)
-
-    // Autoplay is blocked by browsers until user interaction — wait for it
-    const tryPlay = () => {
-      if (savedPreference) audio.play().catch(() => {})
-    }
-
-    window.addEventListener('pointerdown', tryPlay, { once: true })
-    window.addEventListener('keydown', tryPlay, { once: true })
-
-    return () => {
-      window.removeEventListener('pointerdown', tryPlay)
-      window.removeEventListener('keydown', tryPlay)
+    if (!armed) {
       audio.pause()
+      audio.currentTime = 0
+      setMusicBlocked(false)
+      return
     }
-  }, [])
 
-  const toggleMusic = () => {
+    if (!musicOn) {
+      audio.pause()
+      setMusicBlocked(false)
+    }
+  }, [armed, musicOn])
+
+  const toggleMusic = async () => {
     const audio = audioRef.current
     if (!audio) return
 
     if (musicOn) {
       audio.pause()
       setMusicOn(false)
-      localStorage.setItem('portfolio-music', 'off')
-    } else {
-      audio.play().catch(() => {})
-      setMusicOn(true)
-      localStorage.setItem('portfolio-music', 'on')
+      setMusicBlocked(false)
+      window.localStorage.setItem('portfolio-music', 'off')
+      return
+    }
+
+    setMusicOn(true)
+    window.localStorage.setItem('portfolio-music', 'on')
+
+    if (armed) {
+      await playAudio()
     }
   }
 
   const MusicToggle = ({ mobile = false }) => (
     <button
+      type="button"
       onClick={toggleMusic}
       aria-label={musicOn ? 'Turn music off' : 'Turn music on'}
-      className={`group flex items-center gap-2 border border-border text-xs font-mono 
-        transition-all duration-300 rounded-sm px-3 py-2
-        ${mobile ? 'w-full justify-between' : ''}
-        ${musicOn ? 'border-accent/60 text-paper' : 'text-muted hover:text-paper hover:border-accent'}
-      `}
+      className={`group flex items-center gap-2 border border-border text-xs font-mono transition-all duration-300 rounded-sm px-3 py-2 ${
+        mobile ? 'w-full justify-between' : ''
+      } ${
+        musicOn ? 'border-accent/60 text-paper' : 'text-muted hover:text-paper hover:border-accent'
+      }`}
     >
       <span className="flex items-end gap-0.5 h-4" aria-hidden="true">
         {[0, 1, 2].map((bar) => (
           <span
             key={bar}
-            className={`block w-1 rounded-full bg-current ${musicOn ? 'animate-pulse' : ''}`}
+            className={`block w-1 rounded-full bg-current ${musicOn && !musicBlocked ? 'animate-pulse' : ''}`}
             style={{ height: `${6 + bar * 4}px`, animationDelay: `${bar * 120}ms` }}
           />
         ))}
       </span>
-      <span>{musicOn ? 'Music On' : 'Music Off'}</span>
+      <span>{musicBlocked ? 'Tap to play' : musicOn ? 'Music On' : 'Music Off'}</span>
     </button>
   )
 
   return (
     <>
-      <audio ref={audioRef} src="/audio/theme2.mp3" preload="auto" />
+      <audio ref={audioRef} src="/audio/theme2.mp3" preload="auto" playsInline />
 
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled ? 'py-3 bg-ink/80 backdrop-blur-xl border-b border-border' : 'py-6'
@@ -174,4 +192,6 @@ export default function Nav({ armed = false }) {
       </nav>
     </>
   )
-}
+})
+
+export default Nav
