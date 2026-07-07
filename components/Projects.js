@@ -13,7 +13,7 @@ const projects = [
       'Deployed on Vercel with automatic scaling and secure API key handling.',
     ],
     tags: ['Next.js', 'Google Gemini', 'Vercel', 'Serverless', 'NLP', 'SEO'],
-    link: 'https://www.seominer.vercel.app',
+    link: 'https://seominer.vercel.app/',
     featured: true,
   },
   {
